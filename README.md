@@ -11,10 +11,10 @@ What it demonstrates:
 
 > **Used by:** the companion [`conversational-voice-agent`](https://github.com/derekclair/conversational-voice-agent) repo — a local voice front-end (STT/TTS on a DGX Spark) that uses this package as its agent brain.
 >
-> **Fleet design:** this brain sits inside a role-split workstation fleet
-> (orchestrator → architect / researcher / coder / reviewer) with a spec-first
-> gate and a one-local-LLM budget on GB10. See
-> [`specs/008-workstation-agent-fleet/spec.md`](specs/008-workstation-agent-fleet/spec.md).
+> **Fleet ops:** the workstation's multi-profile fleet (orchestrator, architect,
+> researcher, coder, reviewer) is documented in local Hermes docs at
+> `~/.hermes/docs/agentic-workflow.md`. That file stays there — Hermes expects
+> it in place — and is not vendored into this repo.
 
 ## Prerequisites
 
@@ -167,8 +167,8 @@ make install   # already includes dev tools
 
 - **[Development Guide](docs/development.md)** — How to set up your environment, run text vs voice mode, and common commands.
 - **[Architecture Overview](docs/architecture.md)** — Layering, key components, and how everything fits together.
-- **[Workstation agent fleet](specs/008-workstation-agent-fleet/spec.md)** — Role split, spec-first gate, DGX Spark memory budget, and how this package is the reasoning brain (not the dispatcher).
 - `specs/` — Feature specifications and design decisions (read these to understand *why* things are built the way they are).
+- Workstation fleet operating manual: local `~/.hermes/docs/agentic-workflow.md` (not in this tree).
 
 ## Development
 

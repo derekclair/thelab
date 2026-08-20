@@ -2,11 +2,10 @@
 
 The system is deliberately layered so that the "brain" can evolve independently of the voice hardware and the deployment target (Mac dev vs DGX Spark personal desktop, with a clear future path to multi-node DGX Spark clusters for 340b-class models).
 
-The personal workstation around this package is a **role-split agent fleet**
-(orchestrator, architect, researcher, coder, reviewer) with a spec-first
-gate and a one-local-LLM budget on the DGX Spark. That operating design is
-[`specs/008-workstation-agent-fleet/spec.md`](../specs/008-workstation-agent-fleet/spec.md).
-This document is the software layering of the LangGraph brain itself.
+How this brain is dispatched on the workstation (role-split fleet, spec-first
+gate, one-local-LLM budget) lives in Hermes, not here:
+`~/.hermes/docs/agentic-workflow.md`. This document is the software layering
+of the LangGraph package itself.
 
 ## High-Level Layers
 
