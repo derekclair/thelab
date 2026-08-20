@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install minimal CPU-only dependencies
+        # The full package depends on audio/GPU libraries (sounddevice / PortAudio,
+        # nvidia-riva-client) that the voice layer needs but the tests do not.
+        # We install the package without its deps, then add only the lightweight
+        # set required to import and test the agent brain on a plain CPU runner.
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e . --no-deps
+          pip install \
+            "langchain-core>=0.3" \
+            "langgraph>=0.2" \
+            "pydantic>=2.0" \
+            "pydantic-settings>=2.0" \
+            "python-dotenv>=1.0" \
+            "rich>=13.0" \
+            "supermemory>=0.1" \
+            "pytest>=8.0" \
+            "pytest-asyncio>=0.23" \
+            "ruff>=0.4"
+
+      - name: Lint
+        run: ruff check .
+
+      - name: Test
+        run: pytest -q

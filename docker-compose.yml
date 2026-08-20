@@ -1,0 +1,132 @@
+# docker-compose.yml
+# Canonical way to run the TheLab Voice Agent stack on DGX Spark.
+#
+# For single-node DGX Spark desktop (current v1): uses 120b Nemotron NIM by default (responsive voice latency).
+# For future multi-node 340b-class: set NEMOTRON_IMAGE and NEMOTRON_MODEL env overrides before `docker compose up`.
+#
+# Development flow:
+#   1. Develop on Mac
+#   2. docker compose build (or buildx for multi-arch)
+#   3. Push image to a registry (or build directly on DGX)
+#   4. On DGX: docker compose pull && docker compose up
+#
+# Services:
+#   - agent:     Our Python LangGraph + voice orchestrator (points at nemotron:8000 by default)
+#   - riva:      NVIDIA Riva (ASR + TTS) - note: current 2.15.0 image does not support GB10; voice may need host passthrough or updated image
+#   - nemotron:  Local Nemotron LLM via official NIM (OpenAI-compatible /v1) - defaults to 120b for desktop
+
+services:
+  agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ${REGISTRY:-registry.digitalocean.com/basementlab}/thelab-agent:${TAG:-latest}
+    container_name: thelab-agent
+    depends_on:
+      riva:
+        condition: service_healthy
+      nemotron:
+        condition: service_healthy
+    environment:
+      - PYTHONUNBUFFERED=1
+      - RIVA_URI=riva:50051
+      # Point the agent at the local Nemotron NIM (OpenAI compatible)
+      - LLM_PROVIDER=${LLM_PROVIDER:-nemotron}
+      - NEMOTRON_BASE_URL=http://nemotron:8000/v1
+      - NEMOTRON_MODEL=${NEMOTRON_MODEL:-nvidia/nemotron-4-340b-instruct}
+      - SUPERMEMORY_API_KEY=${SUPERMEMORY_API_KEY}
+      - XAI_API_KEY=${XAI_API_KEY}
+      # Optional: useful for local development against host services
+      - HOST_IP=${HOST_IP:-host.docker.internal}
+    volumes:
+      - ./data:/app/data
+    # GPU access (DGX Spark) - adjust count as needed
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import thelab_langchain; print('ok')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    profiles: ["full", "agent"]
+
+  riva:
+    image: nvcr.io/nvidia/riva/riva-speech:2.15.0
+    container_name: riva
+    ports:
+      - "50051:50051"   # gRPC (primary for our agent)
+      - "9000:9000"     # HTTP (debug / health)
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=0
+    volumes:
+      - riva_models:/data
+      - riva_models:/opt/riva/models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    shm_size: 1g
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/v1/health/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s   # Riva can take a long time to load models
+    profiles: ["full", "riva", "riva-only"]
+
+  nemotron:
+    # NVIDIA NIM for Nemotron (OpenAI-compatible /v1 endpoint).
+    # Default: 120b-class model for responsive single-node DGX Spark desktop (v1 target).
+    # Override for future multi-DGX 340b-class: NEMOTRON_IMAGE=...-340b... NEMOTRON_MODEL=...
+    image: ${NEMOTRON_IMAGE:-nvcr.io/nim/nvidia/nemotron-3-super-120b-a12b:latest}
+    container_name: nemotron
+    ports:
+      - "8000:8000"
+    environment:
+      - NIM_MODEL_NAME=${NEMOTRON_MODEL:-nvidia/nemotron-3-super-120b-a12b}
+      - NIM_SERVER_PORT=8000
+      - NIM_HTTP_API_PORT=8000
+      - NGC_API_KEY=${NGC_API_KEY}
+    volumes:
+      # Align with the path the NIM entrypoint actually uses for its HF/NGC cache
+      - nemotron_models:/opt/nim/.cache
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+    profiles: ["full", "nemotron", "nemotron-only"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/v1/health/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 300s   # 120b+ models can take 10-30+ min on first load even with cache
+
+volumes:
+  riva_models:
+    driver: local
+  nemotron_models:
+    driver: local
+
+# Usage examples:
+#   docker compose up                    # full stack (agent + riva + nemotron)
+#   docker compose --profile riva-only up
+#   docker compose --profile nemotron-only up
+#
+# To run only the agent against services running on the host (useful for local dev):
+#   HOST_IP=host.docker.internal docker compose up agent
