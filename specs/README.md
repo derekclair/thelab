@@ -17,7 +17,11 @@ or partial.
 | [009](009-architect-coder-handoff/spec.md) | Architect ↔ coder handoff (STE) | Living practice. Not a library feature; not CI-enforced. |
 | [010](010-worker-completion-protocol/spec.md) | Worker complete-or-block | Living practice. This package does not implement a board. |
 | [011](011-voice-reply-contract/spec.md) | Voice-facing reply contract | Wanted speakability rules. No filter in code yet. |
+| [012](012-fleet-dispatch-model/spec.md) | Fleet dispatch model | Conversation vs subagent vs durable board; closed roster. Not a dispatcher in this package. |
+| [013](013-reviewer-quality-gate/spec.md) | Reviewer quality gate | Never implements; severity scale. No reviewer bot here. |
+| [014](014-memory-injection-graph/spec.md) | Memory-injection graph | **Shipped** in `get_agent()`. Raw context; fail-open; no extra summarizer. |
+| [015](015-content-free-telemetry/spec.md) | Content-free telemetry | Voice sibling implements turns; graph does not export OTEL. Hub is `lan-agent-otel`. |
 
 Hermes **operating manual** (CLI, gateway, profile files) stays at
-`~/.hermes/docs/agentic-workflow.md`. Specs 009–010 record the *protocol*,
-not that file.
+`~/.hermes/docs/agentic-workflow.md`. Specs 009–010 and 012–013 record
+*protocol*, not that file.
