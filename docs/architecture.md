@@ -1,6 +1,6 @@
 # Architecture Overview
 
-The system is deliberately layered so that the "brain" can evolve independently of the voice hardware and the deployment target (Mac dev vs DGX Spark personal desktop, with a clear future path to multi-node DGX Spark clusters for 340b-class models).
+The system is deliberately layered so that the "brain" can evolve independently of the voice hardware and the deployment target (Mac dev vs DGX Spark personal desktop).
 
 How this brain is dispatched on the workstation (role-split fleet, spec-first
 gate, one-local-LLM budget) lives in Hermes, not here:
@@ -10,31 +10,28 @@ of the LangGraph package itself.
 ## High-Level Layers
 
 ```
-User (Voice)
+User (voice or text)
       │
-      ▼
-Voice Layer (Riva / NeMo ASR + TTS)
-      │  (audio in → transcript, text out → audio)
-      ▼
-Orchestration Layer (VoiceOrchestrator)
-      │  (turn management, barge-in, audio bridging)
-      ▼
-Agent Brain (LangGraph)
-      │  (memory_injection + LLM with tools)
-      │
-      ├── Supermemory (long-term, user-scoped)
-      ├── Configured LLM (Grok via XAI or Nemotron NIM locally)
-      └── Future tools
+      ├── conversational-voice-agent (live): Parakeet STT + Piper TTS + USB I/O
+      │         │
+      │         ▼
+      └── thelab_langchain.agent (this repo)
+                │  memory_injection → LLM (+ optional memory tools)
+                ├── Supermemory (long-term, user-scoped)
+                └── LLM: Grok / Claude / local OpenAI-compatible (NIM or Ollama)
 ```
+
+`thelab_langchain.voice` is an older Riva-oriented spike in this tree.
+Streaming recognize / barge-in there still raise `NotImplementedError`.
 
 ## Key Components
 
-- **`thelab_langchain.voice`** — Audio I/O + Riva client wrappers + turn management.
-- **`thelab_langchain.agent`** — LangGraph graph, tools (currently Supermemory), state, and LLM factory.
-- **`thelab_langchain.llm`** — Single place that returns the right chat model based on `LLM_PROVIDER`.
-- **Supermemory** — Long-term memory store (profile + semantic search). Scoped per user via `container_tag`.
-- **Riva** — NVIDIA's production ASR/TTS service (runs as separate container on DGX).
-- **Nemotron** — Local LLM brain via NVIDIA NIM (OpenAI-compatible). Swappable at runtime with Grok.
+- **`thelab_langchain.agent`** — LangGraph graph, Supermemory tools, state, LLM factory.
+- **`thelab_langchain.llm`** — Returns the chat model from `LLM_PROVIDER`.
+- **`thelab_langchain.chat`** — Simpler non-graph MemoryChat loop for the CLI.
+- **Supermemory** — Long-term memory (profile + semantic search), scoped per user via `container_tag`.
+- **Live voice I/O** — [`conversational-voice-agent`](https://github.com/derekclair/conversational-voice-agent), not the Riva module in this repo.
+- **Local NIM / Ollama** — Optional OpenAI-compatible brain on the Spark.
 
 ## Multi-User Considerations
 
@@ -42,9 +39,9 @@ See `specs/002-multi-user-support/spec.md`. The architecture was designed with p
 
 ## Deployment Model
 
-- **Development**: Mac + local `.venv` (or Docker with host networking).
-- **Production / Voice**: Full Docker Compose stack on DGX Spark (`agent` + `riva` + `nemotron`).
-- Images are built on the dev machine (or CI) and pushed to a private registry, then pulled on the DGX.
+- **Development**: local `.venv` (`make install` / `make chat`).
+- **Spoken desktop**: sibling `conversational-voice-agent` editable-installs this package.
+- **Compose in this repo**: experimental `agent` + `riva` + `nemotron`. Not the live voice path.
 
 See `specs/003-deployment-infrastructure/spec.md` for current gaps and target state.
 
@@ -61,8 +58,8 @@ See `specs/003-deployment-infrastructure/spec.md` for current gaps and target st
 
 ## Where to Start Exploring the Code
 
-1. `src/thelab_langchain/cli.py` — entry points (`chat`, `voice`, etc.)
-2. `src/thelab_langchain/voice/orchestrator.py` — how voice turns become agent calls
-3. `src/thelab_langchain/agent/graph.py` — the current brain (memory injection + LLM + tools)
-4. `src/thelab_langchain/agent/tools/memory.py` — how we talk to Supermemory
-5. `docker-compose.yml` + `Dockerfile` — how everything runs on DGX
+1. `src/thelab_langchain/agent/graph.py` — the brain (memory injection + LLM + tools)
+2. `src/thelab_langchain/agent/tools/memory.py` — Supermemory tools
+3. `src/thelab_langchain/llm.py` — provider factory
+4. `src/thelab_langchain/cli.py` — text chat entry point
+5. `specs/README.md` — design trail

@@ -1,13 +1,22 @@
-# thelab-langchain
+# thelab
 
-A small, memory-aware **LangGraph agent brain**. This is a personal learning project that pairs a LangGraph reasoning graph with [Supermemory](https://supermemory.ai) for long-term recall, and can talk to **Grok (xAI)**, **Claude (Anthropic)**, or any OpenAI-compatible local model (e.g. a Nemotron NIM on a DGX Spark). It is meant to be a clean, readable reference for wiring memory into an agent — not a production framework, so expect rough edges.
+A small, memory-aware **LangGraph agent brain** for a personal NVIDIA DGX Spark
+workstation. Package name on PyPI-style imports is `thelab-langchain`.
 
-What it demonstrates:
+This is a learning project, not a production framework. It pairs a LangGraph
+reasoning graph with [Supermemory](https://supermemory.ai) for long-term recall,
+and talks to **Grok (xAI)**, **Claude (Anthropic)**, or any OpenAI-compatible
+local model (Ollama / a Nemotron NIM).
 
-- Long-term user memory and automatic profiling via [Supermemory](https://supermemory.ai)
-- A LangGraph graph that proactively injects relevant memory, then lets the model call memory tools when it wants them
-- Pluggable LLM providers behind a single factory (Grok by default — no OpenAI dependency required)
-- A simple interactive CLI
+What is actually in the tree:
+
+- A LangGraph graph that **injects long-term memory as a graph node** before the
+  LLM turn (no extra summarization round-trip), then still lets the model call
+  memory tools when it wants them (`src/thelab_langchain/agent/graph.py`)
+- A single provider factory for Grok / Anthropic / OpenAI-compatible endpoints
+- A CLI for text chat (`thelab-chat`)
+- Specs for the voice/desktop goal, Spark memory budget, and follow-on work
+  (`specs/`)
 
 > **Used by:** the companion [`conversational-voice-agent`](https://github.com/derekclair/conversational-voice-agent) repo — a local voice front-end (STT/TTS on a DGX Spark) that uses this package as its agent brain.
 >
@@ -64,14 +73,10 @@ What it demonstrates:
 
    ```bash
    source .venv/bin/activate
-   thelab-chat chat --user derek
-   ```
-
-**Important**: `.env` is gitignored and should **never** be committed. Your new dedicated Supermemory key will stay local.
-
-   ```bash
    thelab-chat chat --user alice
    ```
+
+**Important**: `.env` is gitignored and should **never** be committed.
 
 ### Special Commands (inside the chat)
 
@@ -85,22 +90,20 @@ What it demonstrates:
 
 Everything else is sent to the LLM together with rich memory context pulled from Supermemory.
 
-## How It Works
+## How the graph works
 
-On every turn the agent:
+On each agent turn (`get_agent()` in `agent/graph.py`):
 
-1. Calls `memory.profile(container_tag=user_id, q=message)` — Supermemory returns:
-   - `static` facts (long-term profile)
-   - `dynamic` context (recent activity)
-   - Semantically relevant past memories
+1. **`memory_injection` node** — pulls profile + a few recalled memories from
+   Supermemory using the last user utterance, and prepends them as a
+   `SystemMessage`. Raw context, not an LLM summary, so a voice turn does not
+   pay for an extra round-trip.
+2. **`call_llm`** — the chosen provider runs with memory tools bound.
+3. **Tools (optional)** — if the model calls `store_memory` / `recall_memories`
+   / `get_user_profile`, `ToolNode` runs and the graph loops; otherwise it ends.
 
-2. Injects a nicely formatted context block into the system prompt.
-
-3. Calls the chosen LLM (`ChatXAI` or `ChatAnthropic`).
-
-4. Stores the turn via `memory.add(...)` so future conversations remember it.
-
-This pattern gives you excellent personalization and continuity without managing your own vector store or prompt engineering for memory.
+Text chat (`MemoryChat` in `chat.py`) is a simpler profile → LLM → store loop
+without the graph. The voice sibling uses `get_agent()`.
 
 ## About the Official Supermemory + LangChain Guide
 
@@ -139,40 +142,30 @@ make install   # already includes dev tools
 .venv/bin/pip install -e ".[anthropic]"
 ```
 
-## Project Layout
+## Project layout
 
 ```
-.
-├── src/thelab_langchain/
-│   ├── __init__.py
-│   ├── config.py           # Pydantic settings + validation
-│   ├── llm.py              # LLM provider factory (Grok / Anthropic / OpenAI-compatible)
-│   ├── chat.py             # MemoryChat core (profile → LLM → store)
-│   ├── cli.py              # Typer + Rich interactive shell
-│   ├── agent/              # LangGraph agent brain
-│   │   ├── graph.py        # Reasoning graph (memory injection + tool calls)
-│   │   ├── state.py        # Graph state definitions
-│   │   └── tools/          # Agent tools (e.g. Supermemory memory tool)
-│   └── voice/              # Optional voice front-end (STT/TTS orchestration)
-│       ├── orchestrator.py
-│       ├── audio.py
-│       └── riva.py
-├── examples/               # Runnable, non-interactive usage examples
-├── .env.example
-├── pyproject.toml
-└── README.md
+src/thelab_langchain/agent/graph.py   LangGraph brain (memory injection + tools)
+src/thelab_langchain/llm.py           Provider factory
+src/thelab_langchain/chat.py          Simpler text MemoryChat loop
+src/thelab_langchain/voice/           Riva-oriented spike (streaming is Phase 2)
+tests/                                CPU-only unit tests (CI)
+specs/                                Design specs — see specs/README.md
+docs/                                 Architecture + development notes
+examples/                             Non-interactive snippets
 ```
 
-## Documentation & Getting Started
+## Documentation
 
-- **[Development Guide](docs/development.md)** — How to set up your environment, run text vs voice mode, and common commands.
-- **[Architecture Overview](docs/architecture.md)** — Layering, key components, and how everything fits together.
-- `specs/` — Feature specifications and design decisions (read these to understand *why* things are built the way they are).
-- Workstation fleet operating manual: local `~/.hermes/docs/agentic-workflow.md` (not in this tree).
+- **[Architecture](docs/architecture.md)** — layering of this package
+- **[Development](docs/development.md)** — venv, chat, common commands
+- **[Specs index](specs/README.md)** — design and planning already in this repo
+- Workstation fleet operating manual (Hermes, not vendored):
+  `~/.hermes/docs/agentic-workflow.md`
 
 ## Development
 
-### Local (Mac) Development
+### Local development
 
 All commands go through the local venv via Make:
 
@@ -183,34 +176,24 @@ make chat             # text chat demo
 make run              # same as chat
 ```
 
-### Docker + DGX Spark Deployment (Recommended for Voice)
+### Voice on the DGX Spark
 
-The canonical way to run the full stack (agent + Riva + Nemotron) is via Docker Compose on the DGX Spark:
+The **live** spoken path is the sibling
+[`conversational-voice-agent`](https://github.com/derekclair/conversational-voice-agent)
+repo (Parakeet STT + Piper TTS + this package as `get_agent()`). Clone it next
+to this repo as `../conversational-voice-agent`, then `make` here and `make`
+there.
 
-```bash
-# 1. Develop on Mac
-# 2. Build the agent image
-docker compose build
+`docker-compose.yml` in *this* repo is a NIM + Riva experiment. Streaming ASR
+in `src/thelab_langchain/voice/` is still `NotImplementedError` (Phase 2).
+Do not treat that compose file as the production voice stack.
 
-# 3. On the DGX (ssh dgx)
-docker compose pull          # or build
-docker compose up -d
-```
+## Honest gaps
 
-See `docker-compose.yml` for the current services (`agent`, `riva`, `nemotron`).
-
-The agent can be pointed at either Grok or the local Nemotron NIM at runtime via environment variables.
-
-(Full observability is deferred for now.)
-
-## Next Steps / Ideas
-
-- Add proper LangGraph agent with tools + Supermemory as a tool
-- Persistent local conversation history + summarization
-- Metadata filtering examples (`memory.search.memories(filters=...)`)
-- Evaluation harness against MemoryBench
-- Expose as a FastAPI service or Discord/Slack bot
-- Store documents (not just chat turns) via `memory.add(url=...)` or raw content
+- Conversation checkpointers are specified (`specs/004`) but not wired; graph
+  state is in-memory for a process lifetime.
+- `specs/002` multi-user is a design, not a shipped tenant model.
+- No eval harness / MemoryBench numbers in this tree.
 
 ## References
 

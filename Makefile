@@ -6,8 +6,9 @@
 #   Just run `make` (bare) in this directory.
 #   It preps the venv + package so the sibling conversational-voice-agent spike can use the real agent.
 #
-# Then (in the other shell): cd ../conversational-voice-agent && make
-#   (bare `make` there actually starts the voice loop that drives the spike.)
+# Then (in the other shell): clone github.com/derekclair/conversational-voice-agent
+#   next to this repo and: cd ../conversational-voice-agent && make
+#   (bare `make` there starts the voice loop that drives this agent.)
 #
 # Use `make help` for the full list of targets (chat, local, install, pids, kill, etc.).
 
