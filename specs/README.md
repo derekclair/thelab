@@ -21,7 +21,22 @@ or partial.
 | [013](013-reviewer-quality-gate/spec.md) | Reviewer quality gate | Never implements; severity scale. No reviewer bot here. |
 | [014](014-memory-injection-graph/spec.md) | Memory-injection graph | **Shipped** in `get_agent()`. Raw context; fail-open; no extra summarizer. |
 | [015](015-content-free-telemetry/spec.md) | Content-free telemetry | Voice sibling implements turns; graph does not export OTEL. Hub is `lan-agent-otel`. |
+| [016](016-mac-spark-hybrid-inference/spec.md) | Mac + Spark hybrid inference | Research contract. MCDMA watch-only; ds4 spike not executed. Not the agent path. |
+| [017](017-mcp-runtime-trust-boundary/spec.md) | MCP runtime trust boundary | Tool processes are a host trust boundary. POC out of tree; not in `get_agent()`. |
 
 Hermes **operating manual** (CLI, gateway, profile files) stays at
 `~/.hermes/docs/agentic-workflow.md`. Specs 009–010 and 012–013 record
 *protocol*, not that file.
+
+### Research tracks not imported
+
+Workspace research that is **not** SDD in this package (wrong product, client,
+or a dump we will not vendor):
+
+- Church captioning / ProPresenter pipelines
+- Client marketing sites
+- World-models / SITE-Bench eval clones (upstream academic bench)
+- Skill-optimization bootstrap (no design locked)
+- Multi-agent *literature* surveys (012 is our chosen dispatch model)
+- CVE/KEV catalogs and cycle summaries (017 records the trust boundary only)
+- Alternate observability compose experiments (015 points at `lan-agent-otel`)
