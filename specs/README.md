@@ -12,6 +12,7 @@ are drafts or future work, not a claim that every spec is implemented.
 | [005](005-testing-and-cicd/spec.md) | Testing & CI | Direction; a CPU-only pytest + ruff workflow is in `.github/workflows/ci.yml` |
 | [006](006-alternative-memory-systems/spec.md) | Alternative memory backends | Future consideration; Supermemory is the current store |
 | [007](007-dgx-hardware-optimization/spec.md) | DGX Spark hardware budget | ~30B-class local models; no 120B+ agent loops on one Spark |
+| [008](008-local-tts-lenovo-go-spike/spec.md) | Local-tts Lenovo Go spike | Button → VAD → Parakeet → `get_agent()` → Piper. **Executed in** [`conversational-voice-agent`](https://github.com/derekclair/conversational-voice-agent) |
 
 Workstation **fleet operations** (orchestrator / architect / researcher /
 coder / reviewer, Kanban vs chat) are not specified here. That operating

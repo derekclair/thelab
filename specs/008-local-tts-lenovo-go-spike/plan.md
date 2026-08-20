@@ -22,7 +22,7 @@ Teams button (BTN_0)          Lenovo Go speaker (ALSA)
 
 | Piece | Owner |
 |-------|--------|
-| Button, LED, ALSA, VAD, STT, TTS, telemetry | Sibling I/O package (working name **local-tts**) |
+| Button, LED, ALSA, VAD, STT, TTS, telemetry | [`conversational-voice-agent`](https://github.com/derekclair/conversational-voice-agent) (working name **local-tts**) |
 | LangGraph, memory injection, provider factory | **this repo** (`thelab_langchain.agent.graph.get_agent`) |
 
 `src/thelab_langchain/voice/` in *this* tree (Riva wrappers, streaming `NotImplementedError`) is **not** the live path for this spike.

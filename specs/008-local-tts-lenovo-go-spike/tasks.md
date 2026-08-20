@@ -39,6 +39,6 @@ the SDD record was added to this repo, not on the original 2026-06-12 day.
 
 ## Traceability
 
-Implementation git history for Phase 1–2 lives in the I/O package, not in this
-repo. This tasks file is the checklist view of that work. The second commit on
-the spec branch names the public I/O repository.
+Implementation git history for Phase 1–2 is
+[`derekclair/conversational-voice-agent`](https://github.com/derekclair/conversational-voice-agent).
+This tasks file is only the checklist view.

@@ -1,7 +1,9 @@
 # Feature Spec: Local-tts Lenovo Go voice I/O spike
 
 **Feature ID**: 008-local-tts-lenovo-go-spike
-**Status**: Specified (design record). Execution is a sibling package; see the follow-up note in this folder after the implementation pointer commit.
+**Status**: Specified and executed.
+**Implementation**: [`derekclair/conversational-voice-agent`](https://github.com/derekclair/conversational-voice-agent)
+(historically the `local-tts` package). This repo stays the brain (`get_agent()`).
 **Created**: 2026-06-12 (spike locked)
 **Recorded here**: 2026-08-20
 **Owner**: Derek Clair

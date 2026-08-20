@@ -18,7 +18,9 @@ What is actually in the tree:
 - Specs for the voice/desktop goal, Spark memory budget, and follow-on work
   (`specs/`)
 
-> **Used by:** the companion [`conversational-voice-agent`](https://github.com/derekclair/conversational-voice-agent) repo — a local voice front-end (STT/TTS on a DGX Spark) that uses this package as its agent brain.
+> **Used by:** [`conversational-voice-agent`](https://github.com/derekclair/conversational-voice-agent)
+> executes [spec 008](specs/008-local-tts-lenovo-go-spike/spec.md) (the Lenovo Go
+> local-tts spike). This package is `get_agent()` only.
 >
 > **Fleet ops:** the workstation's multi-profile fleet (orchestrator, architect,
 > researcher, coder, reviewer) is documented in local Hermes docs at
@@ -160,6 +162,7 @@ examples/                             Non-interactive snippets
 - **[Architecture](docs/architecture.md)** — layering of this package
 - **[Development](docs/development.md)** — venv, chat, common commands
 - **[Specs index](specs/README.md)** — design and planning already in this repo
+- **[Spec 008](specs/008-local-tts-lenovo-go-spike/spec.md)** — local-tts spike; implemented in [`conversational-voice-agent`](https://github.com/derekclair/conversational-voice-agent)
 - Workstation fleet operating manual (Hermes, not vendored):
   `~/.hermes/docs/agentic-workflow.md`
 

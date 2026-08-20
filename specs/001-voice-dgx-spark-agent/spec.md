@@ -130,7 +130,7 @@ We will use NeMo models (e.g., Conformer / FastConformer for ASR, FastPitch + Hi
 
 This decision was confirmed during spec review.
 
-**Spike / Prototype Vehicle note (2026-06-12)**: A working local voice I/O spike exists in `conversational-voice-agent` using the Lenovo Go Wired Speaker as the physical interface (mic + speaker + Teams button for trigger + LED for session feedback). It provides a rapid, low-commitment way to prototype the natural-language voice feel (named-pipe or button trigger, live partial transcripts via streaming NeMo ASR, spoken replies on the device, hardware LED/button feedback) while feeding the *existing* agent + Supermemory harness we already have. The seams are intentionally minimal (`send_partial_to_agent` for input to the brain, `speak()` / `/tmp/voice_speak` for output audio on the Lenovo Go) so the spike does not re-implement or bypass the agent brain / Supermemory. See `specs/001-interim-lenovo-go-voice-spike.md` in that repo. This is a prototyping vehicle and is intentionally uncommitted to final production voice layer choices (Riva vs. other, telephony integration, heavy models, the main VoiceOrchestrator path, etc.).
+**Spike / Prototype Vehicle note (2026-06-12)**: The interim Lenovo Go hardware loop is specified in [008-local-tts-lenovo-go-spike](../008-local-tts-lenovo-go-spike/spec.md) and executed in [`conversational-voice-agent`](https://github.com/derekclair/conversational-voice-agent). Live path is ALSA + Parakeet (NeMo CPU) + Piper, calling `get_agent()` in this package. It is uncommitted to the Riva / telephony / NIM compose choices in this spec.
 
 ## Related Work
 
