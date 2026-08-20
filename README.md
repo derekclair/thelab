@@ -163,6 +163,7 @@ examples/                             Non-interactive snippets
 - **[Development](docs/development.md)** — venv, chat, common commands
 - **[Specs index](specs/README.md)** — design and planning already in this repo
 - **[Spec 008](specs/008-local-tts-lenovo-go-spike/spec.md)** — local-tts spike; implemented in [`conversational-voice-agent`](https://github.com/derekclair/conversational-voice-agent)
+- **[Spec 014](specs/014-memory-injection-graph/spec.md)** — the shipped LangGraph (`get_agent()`)
 - Workstation fleet operating manual (Hermes, not vendored):
   `~/.hermes/docs/agentic-workflow.md`
 
