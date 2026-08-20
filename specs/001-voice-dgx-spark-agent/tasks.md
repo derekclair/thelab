@@ -19,7 +19,7 @@ This document breaks the plan into dependency-ordered, actionable tasks. Each ta
 
 **Current Status (as of 2026-06-12)**: Core agent + openai_compatible wiring + lazy voice imports complete and committed. `local-tts` 30B NeuTTS service initialized in dedicated repo with proper hygiene. nv-monitor observability tool integrated. Compose defaults to local-tts service.
 
-A lightweight **spike** in `conversational-voice-agent` (Lenovo Go hardware loop) has real streaming NeMo ASR (riva.client, live partials), Teams LED feedback (active during session), and partials wired to the agent seam. The spike adds a `speak()` + speak-pipe reply path and wires the physical Teams button to the (locked) trigger pipe so E2E (pipe/button → live partial STT → existing agent + Supermemory via seams → spoken reply on device) can be prototyped and "felt" on real hardware. See the local-tts handoff + its focused spike spec and the light note in this spec.md. The spike deliberately uses a lighter brain path (no 120B lockup) and does not re-implement the agent harness / Supermemory.
+The Lenovo Go spike checklist is [008/tasks.md](../008-local-tts-lenovo-go-spike/tasks.md). Code: [`conversational-voice-agent`](https://github.com/derekclair/conversational-voice-agent). Live ASR is Parakeet via NeMo on CPU, not `riva.client`.
 
 Riva compatibility on current hardware and full production voice loop (telephony / main orchestrator) remain future items.
 
@@ -44,7 +44,9 @@ Riva compatibility on current hardware and full production voice loop (telephony
 - [ ] Clean up related documentation, compose files, and old scripts
 - [ ] Ensure all code changes are clean, well-tested where possible, and follow project conventions
 
-**Spike Track – local-tts Lenovo Go Voice Loop (interim hardware prototype for natural interface feel)** (added 2026-06-12; exercises the *existing* agent + Supermemory via minimal seams; deliberately lightweight and uncommitted to production choices):
+**Spike Track – moved to spec 008.** Do not treat the checkboxes below as the live ASR story (`riva.client` was an early note; Parakeet CPU shipped). Canonical list: [008/tasks.md](../008-local-tts-lenovo-go-spike/tasks.md).
+
+**Spike Track (historical 2026-06-12 notes, superseded by 008)**:
 - [x] Teams button light feedback implemented (led_control.py + integration in voice_loop; light stays active while session runs).
 - [x] Real streaming NeMo ASR integrated using riva.client (replaced mock; partial transcripts flow in real time from first chunk).
 - [x] Agent callback wiring: partial results sent to `send_partial_to_agent()` as soon as they arrive.
