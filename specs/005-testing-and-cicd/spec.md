@@ -1,23 +1,23 @@
 # Feature Spec: Testing Strategy, CI/CD, and Coverage
 
 **Feature ID**: 005-testing-and-cicd  
-**Status**: Draft  
+**Status**: Partial (unit tests + CPU CI exist; coverage gates and image CI do not)  
 **Related**: 001-voice-dgx-spark-agent, 003-deployment-infrastructure  
-**Date**: 2025-05-21
+**Date**: 2025-05-21  
+**Updated**: 2026-08-20
 
 ## Overview
 
-The repository currently has almost no automated tests, no CI pipeline, and no coverage measurement. As the system grows (especially the agent brain, voice layer, and multi-service Docker stack), this becomes a major risk.
+The agent graph, config, and LLM factory need automated tests so changes do not rely on desk smoke only. This spec is the testing and delivery target. Some of it has shipped; some has not.
 
-This spec defines the target testing and delivery infrastructure.
+## Current State (2026-08-20)
 
-## Current State
-
-- No `tests/` directory with meaningful coverage.
-- No `pytest` configuration beyond a stub in `pyproject.toml`.
-- No GitHub Actions or other CI workflow.
-- No coverage reporting (codecov, etc.).
-- Manual testing is the primary validation method.
+- `tests/` exists: `test_agent_graph`, `test_chat`, `test_config`, `test_llm` (CPU, mocked externals).
+- `pytest` + `pytest-asyncio` and `testpaths` are in `pyproject.toml`.
+- GitHub Actions `.github/workflows/ci.yml` runs ruff + pytest with a CPU-only `--no-deps` install.
+- No coverage measurement or coverage gate.
+- No Docker image build in CI.
+- No hardware-in-the-loop tests (and they stay out of every-PR CI).
 
 ## Goals
 
